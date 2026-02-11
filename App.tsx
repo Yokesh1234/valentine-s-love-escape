@@ -201,7 +201,40 @@ const App: React.FC = () => {
     setAccepted(true);
     setShowCelebration(true);
   };
+const App: React.FC = () => {
+  const audioRef = useRef<HTMLAudioElement>(null);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.loop = true;          // loop indefinitely
+    audio.autoplay = true;      // attempt to autoplay
+    audio.volume = 0.5;         // optional volume
+
+    // Try to play (some browsers block autoplay with sound)
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => {
+        console.warn("Autoplay prevented by browser:", err);
+      });
+    }
+  }, []);
+
+  return (
+    <div>
+      <h1>Welcome to My App</h1>
+      <p>Background music is playing!</p>
+
+      {/* Hidden background audio */}
+      <audio
+        ref={audioRef}
+        src="/audio/audio.mp3" // replace with your file path
+        style={{ display: "none" }}
+      />
+    </div>
+  );
+};
   return (
     <main className="relative w-full h-screen bg-gradient-to-br from-pink-500 via-purple-400 to-rose-400 overflow-hidden flex flex-col items-center justify-center p-6">
       <FallingHearts />
