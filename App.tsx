@@ -62,37 +62,19 @@ const EscapingButton: React.FC<{ label: string }> = ({ label }) => {
   const moveButton = useCallback(() => {
     if (!buttonRef.current) return;
 
-    // Get current position and dimensions
     const rect = buttonRef.current.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
-
-    // Calculate current coordinates relative to viewport
-    // rect.left/top includes the current translate offset. 
-    // We want to calculate the new translation relative to the ORIGINAL center,
-    // but it's easier to just calculate "where in the screen can I go?"
-    
-    // Limits: The button must stay within 0 and window.innerWidth/Height
-    // To stay inside, the translation X must be between:
-    // minX = - (original_left_of_button)
-    // maxX = window.innerWidth - (original_left_of_button) - width
-    
-    // Instead of tracking 'original' position, we can calculate a random point 
-    // on the screen and translate the button to that specific coordinate.
-    // However, since we are in a Flex layout, we calculate the bounds of movement.
     
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // The current actual position (including transform)
     const currentLeft = rect.left;
     const currentTop = rect.top;
 
-    // We calculate a new random position in the screen
     const targetLeft = Math.random() * (viewportWidth - width);
     const targetTop = Math.random() * (viewportHeight - height);
 
-    // The change needed to get to that target from the CURRENT position
     const deltaX = targetLeft - currentLeft;
     const deltaY = targetTop - currentTop;
 
@@ -102,7 +84,6 @@ const EscapingButton: React.FC<{ label: string }> = ({ label }) => {
     }));
   }, []);
 
-  // Update position if screen is resized to ensure it doesn't get stuck outside
   useEffect(() => {
     const handleResize = () => {
       if (!buttonRef.current) return;
@@ -196,48 +177,58 @@ const CelebrationEffect: React.FC = () => {
 const App: React.FC = () => {
   const [accepted, setAccepted] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [hasStartedAudio, setHasStartedAudio] = useState(false);
+
+  const startAudio = useCallback(() => {
+    if (audioRef.current && !hasStartedAudio) {
+      audioRef.current.play().then(() => {
+        setHasStartedAudio(true);
+      }).catch(e => console.warn("Audio autoplay blocked by browser. Interaction required.", e));
+    }
+  }, [hasStartedAudio]);
+
+  useEffect(() => {
+    // Attempt autoplay immediately
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5;
+      audioRef.current.play().then(() => {
+        setHasStartedAudio(true);
+      }).catch(() => {
+        // Many browsers block sound-on autoplay until interaction.
+        // We add global listeners for the first interaction.
+        const handleInteraction = () => {
+          startAudio();
+          window.removeEventListener('click', handleInteraction);
+          window.removeEventListener('touchstart', handleInteraction);
+        };
+        window.addEventListener('click', handleInteraction);
+        window.addEventListener('touchstart', handleInteraction);
+      });
+    }
+  }, [startAudio]);
 
   const handleYes = () => {
     setAccepted(true);
     setShowCelebration(true);
+    startAudio(); // Ensure music plays when they say yes
   };
-const App: React.FC = () => {
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.loop = true;          // loop indefinitely
-    audio.autoplay = true;      // attempt to autoplay
-    audio.volume = 0.5;         // optional volume
-
-    // Try to play (some browsers block autoplay with sound)
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((err) => {
-        console.warn("Autoplay prevented by browser:", err);
-      });
-    }
-  }, []);
 
   return (
-    <div>
-      <h1>Welcome to My App</h1>
-      <p>Background music is playing!</p>
+    <main 
+      onClick={startAudio}
+      className="relative w-full h-screen bg-gradient-to-br from-pink-500 via-purple-400 to-rose-400 overflow-hidden flex flex-col items-center justify-center p-6"
+    >
+      <FallingHearts />
 
       {/* Hidden background audio */}
       <audio
         ref={audioRef}
-        src="audio/audio.mp3" // replace with your file path
-        style={{ display: "none" }}
+        src="https://cdn.pixabay.com/audio/2022/02/07/audio_03e0617300.mp3"
+        loop
+        preload="auto"
+        className="hidden"
       />
-    </div>
-  );
-};
-  return (
-    <main className="relative w-full h-screen bg-gradient-to-br from-pink-500 via-purple-400 to-rose-400 overflow-hidden flex flex-col items-center justify-center p-6">
-      <FallingHearts />
 
       {/* Glassmorphism Card */}
       <div 
@@ -268,7 +259,10 @@ const App: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mt-4">
               <button
-                onClick={handleYes}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleYes();
+                }}
                 className="group relative px-12 py-5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xl rounded-full shadow-[0_10px_30px_rgba(225,29,72,0.4)] transition-all duration-300 transform hover:scale-110 active:scale-95 flex items-center gap-3 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
