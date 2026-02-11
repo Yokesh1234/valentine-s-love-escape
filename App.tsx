@@ -267,7 +267,12 @@ const App: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
                 <span className="relative">Yes!</span>
-                <HeartIcon className="relative w-6 h-6 group-hover:animate-pulse" fill="white" />
+                <HeartIcon
+  className="relative w-6 h-6 origin-center transform-gpu animate-heartbeat text-pink-400 drop-shadow-[0_0_6px_rgba(236,72,153,0.9)]"
+  fill="currentColor"
+/>
+
+
               </button>
 
               <EscapingButton label="No..." />
@@ -307,6 +312,18 @@ const App: React.FC = () => {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+          .animate-heartbeat {
+  animation: heartbeat 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes heartbeat {
+  0%   { transform: scale(1); }
+  14%  { transform: scale(1.28); }
+  28%  { transform: scale(1); }
+  42%  { transform: scale(1.18); }
+  70%  { transform: scale(1); }
+  100% { transform: scale(1); }
+}
       `}</style>
     </main>
   );
