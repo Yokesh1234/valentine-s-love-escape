@@ -224,7 +224,7 @@ const App: React.FC = () => {
       {/* Hidden background audio */}
       <audio
         ref={audioRef}
-        src="https://cdn.pixabay.com/audio/2022/02/07/audio_03e0617300.mp3"
+        src="af.mp3" // Ensure this file is in the public directory
         loop
         preload="auto"
         className="hidden"
