@@ -229,7 +229,7 @@ const App: React.FC = () => {
       {/* Hidden background audio */}
       <audio
         ref={audioRef}
-        src="/audio/audio.mp3" // replace with your file path
+        src="audio/audio.mp3" // replace with your file path
         style={{ display: "none" }}
       />
     </div>
